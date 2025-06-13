@@ -2,3 +2,5 @@ Flask
 Flask-Cors
 Flask-SQLAlchemy
 Flask-Migrate
+gunicorn
+

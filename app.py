@@ -10,7 +10,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///asistencia.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Habilitar CORS para que React (Vite) pueda llamar a esta API
-# Solo permitir peticiones desde el dominio de tu frontend en Vercel\ CORS(app, resources={r"/*": {"origins": "https://asistencia-frontend.vercel.app"}})
+# Solo permitir peticiones desde el dominio de tu frontend en Vercel\ 
+CORS(app, resources={r"/*": {"origins": "https://asistencia-frontend.vercel.app"}})
 
 db.init_app(app)
 migrate = Migrate(app, db)

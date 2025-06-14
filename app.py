@@ -6,14 +6,13 @@ from datetime import datetime
 import os
 
 app = Flask(__name__)
-# Configurar la URL de la base de datos, usando DATABASE_URL si está presente
-# (para PostgreSQL en Render)
+# Configurar la URL de la base de datos (PostgreSQL en Render o SQLite local)
 db_url = os.environ.get('DATABASE_URL', 'sqlite:///asistencia.db')
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Habilitar CORS para que sólo permita peticiones desde el frontend en Vercel
-CORS(app, resources={r"/*": {"origins": "https://asistencia-frontend.vercel.app"}})
+# Habilitar CORS: permitir peticiones solo desde el frontend desplegado en Vercel
+CORS(app, resources={r"/*": {"origins": ["https://asistencia-frontend.vercel.app"]}})
 
 # Inicializar extensiones
 db.init_app(app)
@@ -116,13 +115,12 @@ def get_asistencias():
     resultado = []
     for alumno in alumnos:
         reg = next((r for r in alumno.asistencias if r.fecha == fecha), None)
-        item = {
+        resultado.append({
             'alumno_id': alumno.id,
             'nombre': alumno.nombre,
             'apellidos': alumno.apellidos,
-            'presente': bool(reg.presente) if r else False
-        }
-        resultado.append(item)
+            'presente': bool(reg.presente) if reg else False
+        })
     if alumno_id:
         resultado = [r for r in resultado if r['alumno_id'] == alumno_id]
     return jsonify(resultado)
@@ -134,7 +132,6 @@ def guardar_asistencias():
     fecha = datetime.strptime(data.get('fecha'), '%Y-%m-%d').date()
     lista = data.get('asistencias', [])
 
-    # Eliminar registros previos de esa fecha/taller
     Asistencia.query.filter_by(fecha=fecha) \
         .join(Alumno) \
         .filter(Alumno.talleres.any(id=taller_id)) \

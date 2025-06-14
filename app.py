@@ -6,13 +6,13 @@ from datetime import datetime
 import os
 
 app = Flask(__name__)
-# Configurar la URL de la base de datos, usando DATABASE_URL si está presente (para PostgreSQL en Render)
+# Configurar la URL de la base de datos, usando DATABASE_URL si está presente
+# (para PostgreSQL en Render)
 db_url = os.environ.get('DATABASE_URL', 'sqlite:///asistencia.db')
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Habilitar CORS para que React (Vite) pueda llamar a esta API
-# Solo permitir peticiones desde el dominio de tu frontend en Vercel\ 
+# Habilitar CORS para que sólo permita peticiones desde el frontend en Vercel
 CORS(app, resources={r"/*": {"origins": "https://asistencia-frontend.vercel.app"}})
 
 # Inicializar extensiones
@@ -120,7 +120,7 @@ def get_asistencias():
             'alumno_id': alumno.id,
             'nombre': alumno.nombre,
             'apellidos': alumno.apellidos,
-            'presente': bool(reg.presente) if reg else False
+            'presente': bool(reg.presente) if r else False
         }
         resultado.append(item)
     if alumno_id:

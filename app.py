@@ -153,6 +153,57 @@ def guardar_asistencias():
 
     db.session.commit()
     return jsonify({'message': 'Asistencias registradas'}), 201
+@app.route('/alumnos/bulk', methods=['POST'])
+def bulk_create_alumnos():
+    """
+    Recibe JSON:
+    {
+      "alumnos": [
+        { "nombre": "...", "apellidos": "...",
+          "direccion": "...", "telefono": "...",
+          "tallerId": 2 },
+        …
+      ]
+    }
+    """
+    data = request.get_json() or {}
+    lista = data.get('alumnos', [])
+    importados, errores = [], []
+
+    for idx, item in enumerate(lista):
+        nombre    = item.get('nombre')
+        apellidos = item.get('apellidos')
+        direccion = item.get('direccion')
+        telefono  = item.get('telefono')
+        taller_id = item.get('tallerId')
+
+        # Validación mínima
+        if not (nombre and apellidos and taller_id):
+            errores.append({'index': idx, 'error': 'Faltan nombre, apellidos o tallerId'})
+            continue
+
+        taller = Taller.query.get(taller_id)
+        if not taller:
+            errores.append({'index': idx, 'error': f'Taller {taller_id} no existe'})
+            continue
+
+        alumno = Alumno(
+            nombre=nombre,
+            apellidos=apellidos,
+            direccion=direccion,
+            telefono=telefono
+        )
+        alumno.talleres.append(taller)
+        db.session.add(alumno)
+        importados.append({'index': idx, 'nombre': nombre, 'apellidos': apellidos})
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Fallo al guardar en la base', 'detalle': str(e)}), 500
+
+    return jsonify({'importados': importados, 'errores': errores}), 201
 
 if __name__ == '__main__':
     app.run(debug=True)

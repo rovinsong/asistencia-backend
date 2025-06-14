@@ -11,8 +11,14 @@ db_url = os.environ.get('DATABASE_URL', 'sqlite:///asistencia.db')
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Habilitar CORS: permitir peticiones solo desde el frontend desplegado en Vercel
-CORS(app, resources={r"/*": {"origins": ["https://asistencia-frontend.vercel.app"]}})
+# Habilitar CORS: permitir peticiones solo desde el frontend desplegado en Vercel,
+# incluyendo métodos y cabeceras para preflight
+CORS(
+    app,
+    resources={r"/*": {"origins": ["https://asistencia-frontend.vercel.app"],
+                           "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+                           "allow_headers": ["Content-Type", "Authorization"]}}
+)
 
 # Inicializar extensiones
 db.init_app(app)

@@ -1,18 +1,21 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_migrate import Migrate
-
 from models import db, Alumno, Taller, Asistencia
 from datetime import datetime
+import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///asistencia.db'
+# Configurar la URL de la base de datos, usando DATABASE_URL si está presente (para PostgreSQL en Render)
+db_url = os.environ.get('DATABASE_URL', 'sqlite:///asistencia.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Habilitar CORS para que React (Vite) pueda llamar a esta API
 # Solo permitir peticiones desde el dominio de tu frontend en Vercel\ 
 CORS(app, resources={r"/*": {"origins": "https://asistencia-frontend.vercel.app"}})
 
+# Inicializar extensiones
 db.init_app(app)
 migrate = Migrate(app, db)
 

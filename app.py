@@ -1,4 +1,3 @@
-```python
 # backend/app.py
 
 from flask import Flask, request, jsonify
@@ -291,4 +290,4 @@ def bulk_create_alumnos():
 
 if __name__ == '__main__':
     app.run(debug=True)
-```
+

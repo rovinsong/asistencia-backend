@@ -213,6 +213,36 @@ def bulk_create_alumnos():
 
     return jsonify({'importados': importados, 'errores': errores}), 201
 
+        # ——— RUTAS de Alumnos (continuación) ——————————
+
+        # Actualizar datos de un alumno
+@app.route('/alumnos/<int:id>', methods=['PUT'])
+def actualizar_alumno(id):
+            data = request.get_json() or {}
+            alumno = Alumno.query.get_or_404(id)
+
+            # Si llega nombre y apellidos por separado
+            nombre    = data.get('nombre')
+            apellidos = data.get('apellidos')
+            direccion = data.get('direccion')
+            telefono  = data.get('telefono')
+
+            # Asignar solo si vienen en el payload
+            if nombre:    alumno.nombre    = nombre
+            if apellidos: alumno.apellidos = apellidos
+            if direccion: alumno.direccion = direccion
+            if telefono:  alumno.telefono  = telefono
+
+            db.session.commit()
+            return jsonify({'message': 'Alumno actualizado correctamente'}), 200
+
+        # Eliminar un alumno por completo
+@app.route('/alumnos/<int:id>', methods=['DELETE'])
+def eliminar_alumno(id):
+            alumno = Alumno.query.get_or_404(id)
+            db.session.delete(alumno)
+            db.session.commit()
+            return jsonify({'message': 'Alumno eliminado correctamente'}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)

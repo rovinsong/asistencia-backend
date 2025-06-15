@@ -100,24 +100,15 @@ def crear_alumno():
 # ——— RUTAS de Asistencia e Historial —————————————————————————————
 @app.route('/asistencias', methods=['GET'])
 def get_asistencias():
-    """
-    Parámetros:
-      - taller_id (int, requerido)
-      - fecha     (YYYY-MM-DD, requerido)
-      - alumno_id (int, opcional)
-    """
     taller_id = request.args.get('taller_id', type=int)
     fecha_str = request.args.get('fecha')
     alumno_id = request.args.get('alumno_id', type=int)
-
     if not (taller_id and fecha_str):
         return jsonify({'error': 'taller_id y fecha son requeridos'}), 400
-
     fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
     alumnos = Alumno.query.join(Alumno.talleres) \
         .filter(Taller.id == taller_id) \
         .order_by(Alumno.apellidos).all()
-
     resultado = []
     for alumno in alumnos:
         reg = next((r for r in alumno.asistencias if r.fecha == fecha), None)
@@ -138,11 +129,23 @@ def guardar_asistencias():
     fecha = datetime.strptime(data.get('fecha'), '%Y-%m-%d').date()
     lista = data.get('asistencias', [])
 
-    Asistencia.query.filter_by(fecha=fecha) \
-        .join(Alumno) \
-        .filter(Alumno.talleres.any(id=taller_id)) \
-        .delete(synchronize_session=False)
+    # 1) Obtener IDs de alumnos del taller
+    alumno_ids = [
+        a.id for a in Alumno.query
+            .filter(Alumno.talleres.any(id=taller_id))
+            .all()
+    ]
 
+    # 2) Borrar registros previos sin usar join()
+    if alumno_ids:
+        Asistencia.query \
+            .filter(
+                Asistencia.fecha == fecha,
+                Asistencia.alumno_id.in_(alumno_ids)
+            ) \
+            .delete(synchronize_session=False)
+
+    # 3) Crear nuevos registros
     for item in lista:
         a = Asistencia(
             fecha=fecha,
@@ -153,40 +156,26 @@ def guardar_asistencias():
 
     db.session.commit()
     return jsonify({'message': 'Asistencias registradas'}), 201
+
 @app.route('/alumnos/bulk', methods=['POST'])
 def bulk_create_alumnos():
-    """
-    Recibe JSON:
-    {
-      "alumnos": [
-        { "nombre": "...", "apellidos": "...",
-          "direccion": "...", "telefono": "...",
-          "tallerId": 2 },
-        …
-      ]
-    }
-    """
     data = request.get_json() or {}
     lista = data.get('alumnos', [])
     importados, errores = [], []
-
     for idx, item in enumerate(lista):
         nombre    = item.get('nombre')
         apellidos = item.get('apellidos')
         direccion = item.get('direccion')
         telefono  = item.get('telefono')
         taller_id = item.get('tallerId')
-
         # Validación mínima
         if not (nombre and apellidos and taller_id):
             errores.append({'index': idx, 'error': 'Faltan nombre, apellidos o tallerId'})
             continue
-
         taller = Taller.query.get(taller_id)
         if not taller:
             errores.append({'index': idx, 'error': f'Taller {taller_id} no existe'})
             continue
-
         alumno = Alumno(
             nombre=nombre,
             apellidos=apellidos,
@@ -196,13 +185,11 @@ def bulk_create_alumnos():
         alumno.talleres.append(taller)
         db.session.add(alumno)
         importados.append({'index': idx, 'nombre': nombre, 'apellidos': apellidos})
-
     try:
         db.session.commit()
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': 'Fallo al guardar en la base', 'detalle': str(e)}), 500
-
     return jsonify({'importados': importados, 'errores': errores}), 201
 
 if __name__ == '__main__':

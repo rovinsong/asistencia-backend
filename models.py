@@ -29,14 +29,11 @@ class Alumno(db.Model):
     direccion = db.Column(db.String(200))
     telefono = db.Column(db.String(50))
 
-    # Relación con Talleres (muchos a muchos)
     talleres = db.relationship(
         'Taller',
         secondary=alumno_taller,
         back_populates='alumnos'
     )
-
-    # Relación con Asistencias (uno a muchos)
     asistencias = db.relationship(
         'Asistencia',
         back_populates='alumno',
@@ -51,3 +48,10 @@ class Asistencia(db.Model):
 
     alumno_id = db.Column(db.Integer, db.ForeignKey('alumno.id'), nullable=False)
     alumno = db.relationship('Alumno', back_populates='asistencias')
+
+# ——— NUEVO: Modelo de Usuarios ——————————————————————————
+class User(db.Model):
+    __tablename__ = 'user'
+    id = db.Column(db.Integer, primary_key=True)
+    username      = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)

@@ -4,4 +4,6 @@ Flask-SQLAlchemy
 Flask-Migrate
 gunicorn
 psycopg2-binary
+Flask-Bcrypt
+Flask-JWT-Extended
 

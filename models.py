@@ -12,8 +12,9 @@ alumno_taller = db.Table(
 
 class Taller(db.Model):
     __tablename__ = 'taller'
-    id = db.Column(db.Integer, primary_key=True)
+    id     = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
+    dias   = db.Column(db.String(50))  # CSV con los días seleccionados, p.e. "Lunes,Miércoles,Viernes"
 
     alumnos = db.relationship(
         'Alumno',
@@ -23,11 +24,11 @@ class Taller(db.Model):
 
 class Alumno(db.Model):
     __tablename__ = 'alumno'
-    id = db.Column(db.Integer, primary_key=True)
-    nombre = db.Column(db.String(100), nullable=False)
+    id        = db.Column(db.Integer, primary_key=True)
+    nombre    = db.Column(db.String(100), nullable=False)
     apellidos = db.Column(db.String(100), nullable=False)
     direccion = db.Column(db.String(200))
-    telefono = db.Column(db.String(50))
+    telefono  = db.Column(db.String(50))
 
     talleres = db.relationship(
         'Taller',
@@ -42,16 +43,16 @@ class Alumno(db.Model):
 
 class Asistencia(db.Model):
     __tablename__ = 'asistencia'
-    id = db.Column(db.Integer, primary_key=True)
-    fecha = db.Column(db.Date, nullable=False)
-    presente = db.Column(db.Boolean, nullable=False, default=False)
+    id         = db.Column(db.Integer, primary_key=True)
+    fecha      = db.Column(db.Date, nullable=False)
+    presente   = db.Column(db.Boolean, nullable=False, default=False)
 
-    alumno_id = db.Column(db.Integer, db.ForeignKey('alumno.id'), nullable=False)
-    alumno = db.relationship('Alumno', back_populates='asistencias')
+    alumno_id  = db.Column(db.Integer, db.ForeignKey('alumno.id'), nullable=False)
+    alumno     = db.relationship('Alumno', back_populates='asistencias')
 
-# ——— NUEVO: Modelo de Usuarios ——————————————————————————
+# ——— Modelo de Usuarios ——————————————————————————
 class User(db.Model):
-    __tablename__ = 'user'
-    id = db.Column(db.Integer, primary_key=True)
-    username      = db.Column(db.String(80), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    __tablename__    = 'user'
+    id               = db.Column(db.Integer, primary_key=True)
+    username         = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash    = db.Column(db.String(128), nullable=False)
